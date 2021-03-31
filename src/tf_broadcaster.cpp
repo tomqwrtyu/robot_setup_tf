@@ -3,70 +3,10 @@
 
 #include <tf/transform_broadcaster.h>
 
-#include "sensor_msgs/Imu.h"
-
 using namespace std;
-
 #include "cmath"
 #include "ctime"
-
-class rpy_calib {
-	ros::NodeHandle n;
-	ros::Subscriber sub;
-	tf::Quaternion rotation;
-        tf::TransformBroadcaster broadcaster;
-	public:
-
-	    float R,Rd;
-	    float P,Pd;
-	    float Y,Yd;
-            time_t last = time(0);
-
-	    float accel_x;
-	    float accel_y;
-	    float accel_z;
-	    float x ,y ,z, dx, dy, dz;
-
-
-	rpy_calib()
-        {
-	    sub = n.subscribe("camera/accel/sample", 1000, &rpy_calib::accel_callback,this);
-       	    x = 1000.0;
-       	    y = 0.0;
-       	    z = 700.0;
-       	    dx = -3.35;
-       	    dy = 0.0;
-       	    dz = 0.0;
-	}
-        void accel_callback(const sensor_msgs::Imu::ConstPtr& data)
-        {
-            accel_x = 0 - data->linear_acceleration.x;
-            accel_y = 0 - data->linear_acceleration.y;
-            accel_z = 0 - data->linear_acceleration.z;
-            R = roundf((0 - atan2(accel_y,sqrt(accel_x * accel_x + accel_z * accel_z))) * 100) / 100;
-            P = roundf((0 - atan2(accel_x,sqrt(accel_y * accel_y + accel_z * accel_z))) * 100) / 100;
-            if(roundf(accel_y) == 0){
-                Y = 0;
-            }
-            else {
-                //Y = 0 - atan(accel_z/sqrt(accel_x * accel_x + accel_y * accel_y));
-                Y = roundf((0 - atan2(accel_y, accel_z)) * 100) / 100;
-            }
-            if(time(0) - last >= 1){
-            Rd = 180 * R / M_PI;
-            Pd = 180 * P / M_PI;
-            Yd = 180 * Y / M_PI;
-            ROS_INFO("R: %.2f,P: %.2f,Y: %.2f",Rd,Pd,Yd);
-            last = time(0);
-            }
-            rotation.setRPY(R,P,0);
-            broadcaster.sendTransform(
-				tf::StampedTransform(
-						tf::Transform(rotation, tf::Vector3( x+dx, y+dy, z+dz)),
-						ros::Time::now(),"base_link", "base_Camera"));
-        }
-    
-};
+#include "bits/stdc++.h"
 
 
 
@@ -74,13 +14,82 @@ int main(int argc, char **argv) {
 
 	ros::init(argc, argv, "robot_tf_publisher");
 
-	
+	ros::NodeHandle n;
 
-        rpy_calib server;
+	ros::Rate r(100);
 
+	tf::TransformBroadcaster broadcaster;
+float dpitch;
+float droll;
+float dyaw;
+n.getParam("dP",dpitch);
+n.getParam("dR",droll);
+n.getParam("dY",dyaw);
+	float x ,y ,z, dx, dy, dz;
+        double last = time(0);
+	float pitch, roll, yaw;
+	// rotate by x ,y ,z axis
+        float base_pitch = (0 * 3.14) / 180;
+         dpitch = (dpitch * 3.14) / 180;
+	pitch = base_pitch + dpitch;
+        float base_roll = (270 * 3.14) / 180;
+         droll = (droll * 3.14) / 180;
+	roll = base_roll + droll;
+        float base_yaw = (0 * 3.14) / 180;
+        dyaw = (dyaw * 3.14) / 180;
+	yaw = base_yaw + dyaw;
+        
+        x = 1000.0;
+        y = 0.0;
+        z = 700.0;
+        dx = -3.35;
+        dy = -40.0;
+        dz = 42.0;
+        
 
+        tf::Quaternion rotation;
+        rotation.setRPY(roll,pitch,yaw);
 
-        ros::spin();
+        //w = cos(roll / 2)*cos(pitch / 2)*cos(yaw / 2) + sin(roll / 2)*sin(pitch / 2)*sin(yaw / 2);
+        //x = sin(roll / 2)*cos(pitch / 2)*cos(yaw / 2) - cos(roll / 2)*sin(pitch / 2)*sin(yaw / 2);
+        //y = cos(roll / 2)*sin(pitch / 2)*cos(yaw / 2) + sin(roll / 2)*cos(pitch / 2)*sin(yaw / 2);
+        //z = cos(roll / 2)*cos(pitch / 2)*sin(yaw / 2) - sin(roll / 2)*sin(pitch / 2)*sin(yaw / 2);
+        if(time(0) - last >= 1){
+	ROS_INFO("R = %f,P = %f,Y = %f",roll,pitch,yaw);
+        last = time(0);
+        }
+	//ROS_INFO("x = %f",x);
+	//ROS_INFO("y = %f",y);
+	//ROS_INFO("z = %f",z);
+	//ROS_INFO("w = %f",w);
+        
+
+	while (n.ok()) {
+n.getParam("dP",dpitch);
+n.getParam("dR",droll);
+n.getParam("dY",dyaw);
+        float base_pitch = (0 * 3.14) / 180;
+         dpitch = (dpitch * 3.14) / 180;
+	pitch = base_pitch + dpitch;
+        float base_roll = (270 * 3.14) / 180;
+         droll = (droll * 3.14) / 180;
+	roll = base_roll + droll;
+        float base_yaw = (0 * 3.14) / 180;
+        dyaw = (dyaw * 3.14) / 180;
+	yaw = base_yaw + dyaw;
+rotation.setRPY(roll,pitch,yaw);
+		broadcaster.sendTransform(
+
+				tf::StampedTransform(
+
+						tf::Transform(rotation, tf::Vector3( x+dx, y+dy, z+dz)),
+
+						ros::Time::now(),"base_link", "base_Camera"));
+
+		r.sleep();
+
+		system("rosnode kill /camera/realsense2_camera");
+	}
 
 }
 

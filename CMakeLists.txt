@@ -210,6 +210,8 @@ include_directories(
 
 add_executable(tf_broadcaster src/tf_broadcaster.cpp)
 target_link_libraries(tf_broadcaster ${catkin_LIBRARIES})
+add_executable(tf_broadcaster_auto_calibrate src/tf_broadcaster_auto_calibrate.cpp)
+target_link_libraries(tf_broadcaster_auto_calibrate ${catkin_LIBRARIES})
 #add_dependencies(tf_broadcaster aruco_pose_gencpp)
 
 

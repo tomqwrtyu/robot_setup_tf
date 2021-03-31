@@ -2,8 +2,18 @@
 
 <node pkg="robot_setup_tf" type="tf_broadcaster" name="tf" output="screen"/>
 
+<<<<<<< HEAD
+<node pkg="robot_setup_tf" type="tf_listener.py" name="CameraPointsTransformer" output="screen"/>
+=======
 <node pkg="robot_setup_tf" type="tf_listener.py" name="tf_listener" output="screen"/>
 
+>>>>>>> 51856a5a5dec482c1e7d60d9d86ecd07884c3f0f
 
 
+<param name="dx" type="double" value="-3.35"/>
+<param name="dy" type="double" value="-40.0"/>
+<param name="dz" type="double" value="42"/>
+<param name="dP" type="double" value="0"/>
+<param name="dR" type="double" value="-40"/>
+<param name="dY" type="double" value="5"/>
 </launch>
