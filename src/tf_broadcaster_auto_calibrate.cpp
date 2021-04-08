@@ -12,54 +12,68 @@ using namespace std;
 #include "bits/stdc++.h"
 
 class rpy_calib {
-	ros::NodeHandle n;
+
+	
+	public:
+	ros::NodeHandle nh;
 	ros::Subscriber sub;
 	tf::Quaternion rotation;
-    tf::TransformBroadcaster broadcaster;
-	int calib_count;
-	bool is_calibrated;
-	public:
-
-	    double R,Rd;
-	    double P,Pd;
-	    double Y,Yd;
-		double R_array[25];
-		double P_array[25];
-		double Y_array[25];
+        tf::TransformBroadcaster broadcaster;
+            int calib_count;
+	    float R,Rd;
+	    float P,Pd;
+	    float Y,Yd,Yaw;
+		float R_array[25];
+		float P_array[25];
+		float Y_array[25];
             time_t last = time(0);
-
-	    double accel_x;
-	    double accel_y;
-	    double accel_z;
-	    double x ,y ,z, dx, dy, dz;
+            int is_calibrated;
+	    float accel_x;
+	    float accel_y;
+	    float accel_z;
+	    float x ,y ,z;
 
 
 	rpy_calib()
         {
-	        sub = n.subscribe("camera/accel/sample", 1000, &rpy_calib::accel_callback,this);
-       	    x = 1000.0;
-       	    y = 0.0;
-       	    z = 700.0;
-       	    dx = -3.35;
-       	    dy = 0.0;
-       	    dz = 0.0;
+	        sub = nh.subscribe("camera/accel/sample", 1000, &rpy_calib::accel_callback,this);
+		x = 969.0;
+		y = -70.0;
+		z = 480.0;
+		Yaw = 3 * M_PI / 180;
 			calib_count = 0;
-			is_calibrated = False;
+			is_calibrated = 0;
 			
 	}
+	bool nh_check()
+	{
+		if(nh.ok())
+		{
+			return true;
+		}
+		return false;
+	}    
     void accel_callback(const sensor_msgs::Imu::ConstPtr& data)
     {
-        accel_x = 0 - data->linear_acceleration.x;
-        accel_y = 0 - data->linear_acceleration.y;
-        accel_z = 0 - data->linear_acceleration.z;
-        R = roundf((0 - atan2(accel_y,sqrt(accel_x * accel_x + accel_z * accel_z))) * 100) / 100;
-        P = roundf((0 - atan2(accel_x,sqrt(accel_y * accel_y + accel_z * accel_z))) * 100) / 100;
+        if(is_calibrated == 1)
+	{
+	    broadcaster.sendTransform(
+	        tf::StampedTransform(
+		tf::Transform(rotation, tf::Vector3( x, y, z)),
+		ros::Time::now(),"base_link", "base_Camera"));
+            return;
+	}
+        accel_x = data->linear_acceleration.x;
+        accel_y = data->linear_acceleration.y;
+        accel_z = data->linear_acceleration.z;
+        R = roundf((M_PI - atan2(accel_y,sqrt(accel_x * accel_x + accel_z * accel_z))) * 100) / 100;
+        P = roundf(atan2(accel_x,sqrt(accel_y * accel_y + accel_z * accel_z)) * 100) / 100;
         if(roundf(accel_y) == 0){
             Y = 0;
         }
         else {
             //Y = 0 - atan(accel_z/sqrt(accel_x * accel_x + accel_y * accel_y));
-            Y = roundf((0 - atan2(accel_y, accel_z)) * 100) / 100;
+            Y = roundf((M_PI - atan2(accel_y, accel_z)) * (-100)) / 100;
         }
         if(time(0) - last >= 1)
 		{
@@ -69,44 +83,56 @@ class rpy_calib {
             ROS_INFO("R: %.2f,P: %.2f,Y: %.2f",Rd,Pd,Yd);
             last = time(0);
         }
-		calibration_count();
-        rotation.setRPY(R,P,0);
+        calibration_count();
+        rotation.setRPY(R,P,Yaw);
         broadcaster.sendTransform(
 	            tf::StampedTransform(
-				tf::Transform(rotation, tf::Vector3( x+dx, y+dy, z+dz)),
+				tf::Transform(rotation, tf::Vector3( x, y, z)),
 				ros::Time::now(),"base_link", "base_Camera"));
     }
-	void sendtf()
+
+	void send_tf()
 	{
-		if(is_calibrated)
+		if(is_calibrated == 1)
 		{
-			broadcaster.sendTransform(
-	            tf::StampedTransform(
-				tf::Transform(rotation, tf::Vector3( x+dx, y+dy, z+dz)),
-				ros::Time::now(),"base_link", "base_Camera"));
+		    broadcaster.sendTransform(
+			tf::StampedTransform(
+			tf::Transform(rotation, tf::Vector3( x, y, z)),
+			ros::Time::now(),"base_link", "base_Camera"));
+		    return;
 		}
-	}
-		
+	}	
+
 	void calibration_count()
 	{
-		if(calib_count <= 25)
+		if(calib_count < 25 && is_calibrated == 0)
 		{
-			calib_count += 1;
+                        R_array[calib_count] = R;
+                        P_array[calib_count] = P;
+                        Y_array[calib_count] = Y;
+                        calib_count += 1;
 		}
 		else
 		{
-			is_calibrated = True;
+			is_calibrated = 1;
 			R = caculate_median(R_array);
 			P = caculate_median(P_array);
 			Y = caculate_median(Y_array);
+			Rd = 180 * R / M_PI;
+         		Pd = 180 * P / M_PI;
+          	        Yd = 180 * Y / M_PI;
+                        ROS_INFO("Calibration done! R: %.2f,P: %.2f,Y: %.2f",Rd,Pd,Yd);
+                        system("rosnode kill /camera/realsense2_camera_manager");
+                        system("rosnode kill /camera/realsense2_camera");
 		}
 		
 	}
-	
-	double caculate_median(double a[])
+
+	float caculate_median(float a[])
 	{
-		n = sizeof a/sizeof a[0]
-	    QuickSort(a, 0, n - 1);
+		int n = sizeof(&a)/sizeof(a[0]);
+
+	        QuickSort(a, 0, n - 1);
 
 		if(n % 2 !=0)
 		{
@@ -118,10 +144,10 @@ class rpy_calib {
 		}
 	}
 	
-    double QuickSortOnce(double a[], int low, int high)
+    float QuickSortOnce(float a[], int low, int high)
 	{
 		// 將首元素作為樞軸。
-		double pivot = a[low];
+		float pivot = a[low];
 		int i = low, j = high;
 
 		while (i < j)
@@ -154,14 +180,14 @@ class rpy_calib {
 		return i;
 	}
 
-	void QuickSort(double a[], int low, int high)
+	void QuickSort(float a[], int low, int high)
 	{
 		if (low >= high)
 		{
 			return;
 		}
 
-		double pivot = QuickSortOnce(a, low, high);
+		float pivot = QuickSortOnce(a, low, high);
 
 		// 對樞軸的左端進行排序。
 		QuickSort(a, low, pivot - 1);
@@ -181,11 +207,17 @@ int main(int argc, char **argv) {
 
         rpy_calib server;
 
+        time_t start = time(0); 
+        time_t last_time = time(0);
+	while(last_time - start <= 5)
+	{
+		ros::spinOnce();
+		last_time = time(0);
+	}
 
-        server.sendtf();
-
-
-        ros::spin();
-
+        while(server.nh_check())
+	{
+		server.send_tf();
+	}
 }
 
