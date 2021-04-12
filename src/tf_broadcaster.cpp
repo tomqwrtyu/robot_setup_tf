@@ -88,7 +88,6 @@ rotation.setRPY(roll,pitch,yaw);
 
 		r.sleep();
 
-		system("rosnode kill /camera/realsense2_camera");
 	}
 
 }

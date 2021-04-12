@@ -1,5 +1,6 @@
 #!/usr/bin/env python  
 import rospy
+import subprocess #shell command
 import math
 import tf
 import geometry_msgs.msg
@@ -26,7 +27,6 @@ class CPTransform:
             rospy.loginfo("Point translation failed.")
 
         response.tf_pos = [base_point.point.x,base_point.point.y,base_point.point.z]
-        #print(response.tf_pos)
         return response
 
     def start(self):
@@ -34,6 +34,7 @@ class CPTransform:
         rospy.loginfo('Transform service is on.')
         service = rospy.Service('point_transform', point_transform, self._request_handler)
         self.listener = tf.TransformListener()
+        subprocess.call(["rosrun", "beacon_cam", "ros_detection_yolov4_async.py"])
 
 
 if __name__ == '__main__':
