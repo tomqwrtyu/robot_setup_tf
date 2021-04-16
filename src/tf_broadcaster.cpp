@@ -19,14 +19,17 @@ int main(int argc, char **argv) {
 	ros::Rate r(100);
 
 	tf::TransformBroadcaster broadcaster;
-float dpitch;
-float droll;
-float dyaw;
-n.getParam("dP",dpitch);
-n.getParam("dR",droll);
-n.getParam("dY",dyaw);
+	float dpitch;
+	float droll;
+	float dyaw;
+	n.getParam("dP",dpitch);
+	n.getParam("dR",droll);
+	n.getParam("dY",dyaw);
 	float x ,y ,z, dx, dy, dz;
         double last = time(0);
+        n.getParam("dx",dx);
+	n.getParam("dy",dy);
+	n.getParam("dz",dz);
 	float pitch, roll, yaw;
 	// rotate by x ,y ,z axis
         float base_pitch = (0 * 3.14) / 180;
@@ -41,10 +44,7 @@ n.getParam("dY",dyaw);
         
         x = 1000.0;
         y = 0.0;
-        z = 700.0;
-        dx = -3.35;
-        dy = -40.0;
-        dz = 42.0;
+        z = 480.0;
         
 
         tf::Quaternion rotation;
@@ -54,10 +54,10 @@ n.getParam("dY",dyaw);
         //x = sin(roll / 2)*cos(pitch / 2)*cos(yaw / 2) - cos(roll / 2)*sin(pitch / 2)*sin(yaw / 2);
         //y = cos(roll / 2)*sin(pitch / 2)*cos(yaw / 2) + sin(roll / 2)*cos(pitch / 2)*sin(yaw / 2);
         //z = cos(roll / 2)*cos(pitch / 2)*sin(yaw / 2) - sin(roll / 2)*sin(pitch / 2)*sin(yaw / 2);
-        if(time(0) - last >= 1){
-	ROS_INFO("R = %f,P = %f,Y = %f",roll,pitch,yaw);
-        last = time(0);
-        }
+        //if(time(0) - last >= 1){
+	//ROS_INFO("R = %f,P = %f,Y = %f",roll,pitch,yaw);
+        //last = time(0);
+        //}
 	//ROS_INFO("x = %f",x);
 	//ROS_INFO("y = %f",y);
 	//ROS_INFO("z = %f",z);
@@ -65,9 +65,12 @@ n.getParam("dY",dyaw);
         
 
 	while (n.ok()) {
-n.getParam("dP",dpitch);
-n.getParam("dR",droll);
-n.getParam("dY",dyaw);
+        n.getParam("dx",dx);
+	n.getParam("dy",dy);
+	n.getParam("dz",dz);
+	n.getParam("dP",dpitch);
+	n.getParam("dR",droll);
+	n.getParam("dY",dyaw);
         float base_pitch = (0 * 3.14) / 180;
          dpitch = (dpitch * 3.14) / 180;
 	pitch = base_pitch + dpitch;
@@ -77,7 +80,7 @@ n.getParam("dY",dyaw);
         float base_yaw = (0 * 3.14) / 180;
         dyaw = (dyaw * 3.14) / 180;
 	yaw = base_yaw + dyaw;
-rotation.setRPY(roll,pitch,yaw);
+	rotation.setRPY(roll,pitch,yaw);
 		broadcaster.sendTransform(
 
 				tf::StampedTransform(

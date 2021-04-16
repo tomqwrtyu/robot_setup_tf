@@ -4,11 +4,11 @@
 
 <node pkg="robot_setup_tf" type="tf_listener.py" name="tf_listener" output="screen"/>
 
-<param name="dx" type="double" value="-15.0"/>
-<param name="dy" type="double" value="-75.0"/>
-<param name="dz" type="double" value="-220"/>
+<param name="dx" type="double" value="0.0"/>
+<param name="dy" type="double" value="-40.0"/>
+<param name="dz" type="double" value="0.0"/>
 <param name="dP" type="double" value="1.15"/>
-<param name="dR" type="double" value="-16"/>
+<param name="dR" type="double" value="-16.65"/>
 <param name="dY" type="double" value="0.65"/>
 
 </launch>

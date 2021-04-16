@@ -34,7 +34,7 @@ class CPTransform:
         rospy.loginfo('Transform service is on.')
         service = rospy.Service('point_transform', point_transform, self._request_handler)
         self.listener = tf.TransformListener()
-        subprocess.call(["rosrun", "beacon_cam", "ros_detection_yolov4_async.py"])
+        #subprocess.call(["rosrun", "beacon_cam", "ros_detection_yolov4_async.py"])
 
 
 if __name__ == '__main__':

@@ -23,9 +23,9 @@ class rpy_calib {
 	    float R,Rd;
 	    float P,Pd;
 	    float Y,Yd,Yaw;
-		float R_array[25];
-		float P_array[25];
-		float Y_array[25];
+		float R_array[99];
+		float P_array[99];
+		float Y_array[99];
             time_t last = time(0);
             int is_calibrated;
 	    float accel_x;
@@ -37,10 +37,10 @@ class rpy_calib {
 	rpy_calib()
         {
 	        sub = nh.subscribe("camera/accel/sample", 1000, &rpy_calib::accel_callback,this);
-		x = 969.0;
-		y = -70.0;
+		x = 970.0;
+		y = -66.0;
 		z = 480.0;
-		Yaw = 3 * M_PI / 180;
+		Yaw = -0.2 * M_PI / 180;
 			calib_count = 0;
 			is_calibrated = 0;
 			
@@ -67,13 +67,13 @@ class rpy_calib {
         accel_y = data->linear_acceleration.y;
         accel_z = data->linear_acceleration.z;
         R = roundf((M_PI - atan2(accel_y,sqrt(accel_x * accel_x + accel_z * accel_z))) * 100) / 100;
-        P = roundf(atan2(accel_x,sqrt(accel_y * accel_y + accel_z * accel_z)) * 100) / 100;
+        P = roundf(0 - atan2(accel_x,sqrt(accel_y * accel_y + accel_z * accel_z)) * 100) / 100;
         if(roundf(accel_y) == 0){
             Y = 0;
         }
         else {
             //Y = 0 - atan(accel_z/sqrt(accel_x * accel_x + accel_y * accel_y));
-            Y = roundf((M_PI - atan2(accel_y, accel_z)) * (-100)) / 100;
+            Y = roundf((atan2(accel_y, accel_z)) * (-100)) / 100;
         }
         if(time(0) - last >= 1)
 		{
@@ -105,7 +105,7 @@ class rpy_calib {
 
 	void calibration_count()
 	{
-		if(calib_count < 25 && is_calibrated == 0)
+		if(calib_count < 99 && is_calibrated == 0)
 		{
                         R_array[calib_count] = R;
                         P_array[calib_count] = P;
