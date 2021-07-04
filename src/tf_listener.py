@@ -20,7 +20,6 @@ class CPTransform:
         lspoint.point.x = request.cp_pos[0]
         lspoint.point.y = request.cp_pos[1]
         lspoint.point.z = request.cp_pos[2]
-        print('ouob')
         try:
             base_point = PointStamped()
             base_point = self.listener.transformPoint("base_link", lspoint)
