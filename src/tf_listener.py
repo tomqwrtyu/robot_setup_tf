@@ -20,6 +20,7 @@ class CPTransform:
         lspoint.point.x = request.cp_pos[0]
         lspoint.point.y = request.cp_pos[1]
         lspoint.point.z = request.cp_pos[2]
+        print('ouob')
         try:
             base_point = PointStamped()
             base_point = self.listener.transformPoint("base_link", lspoint)
@@ -34,14 +35,14 @@ class CPTransform:
         rospy.loginfo('Transform service is on.')
         service = rospy.Service('point_transform', point_transform, self._request_handler)
         self.listener = tf.TransformListener()
-        #subprocess.call(["rosrun", "beacon_cam", "ros_detection_yolov4_async.py"])
 
 
 if __name__ == '__main__':
     
     transformer = CPTransform()
     transformer.start()
-    rospy.spin()
+    while not rospy.is_shutdown():
+        rospy.sleep(0.5);
 
     
 

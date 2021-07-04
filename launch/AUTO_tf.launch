@@ -4,6 +4,4 @@
 
 <node pkg="robot_setup_tf" type="tf_listener.py" name="tf_listener" output="screen"/>
 
-<node pkg="beacon_cam" type="ros_detection_yolov4_async.py" name="beacon_camera" output="screen"/>
-
 </launch>

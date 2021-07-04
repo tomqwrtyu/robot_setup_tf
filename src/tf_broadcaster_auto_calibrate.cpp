@@ -124,6 +124,7 @@ class rpy_calib {
                         ROS_INFO("Calibration done! R: %.2f,P: %.2f,Y: %.2f",Rd,Pd,Yd);
                         system("rosnode kill /camera/realsense2_camera_manager");
                         system("rosnode kill /camera/realsense2_camera");
+                        //system("rosrun beacon_cam ros_detection_yolov4_async.py");
 		}
 		
 	}
@@ -201,7 +202,7 @@ class rpy_calib {
 
 int main(int argc, char **argv) {
 
-	ros::init(argc, argv, "robot_tf_publisher");
+	ros::init(argc, argv, "tf_broadcaster");
 
 	
 
